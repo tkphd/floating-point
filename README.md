@@ -10,7 +10,15 @@ out-of-order execution on some CPUs, this will not be the case for numerical
 approximations to floating-point summation.
 
 ## Executive Summary
-This is why people pass `-ffast-math` to gcc (or equivalent flag to other C compilers).
+If you value associative math over standards compliance, simply choose optimization
+level `-Ofast`. This level starts with `-O3` and adds corner-cutting flags, the
+most relevant of which is `-funsafe-math-optimizations`, which allows the compiler
+to *change your numbers* to behave in ways it thinks you want, rather than how
+IEEE 754 expects.
+
+I am not advocating `-funsafe-math-optimizations` without serious debate.
+It bears repeating that this flag *will change your numbers* in ways that
+the internationally agreed standards forbid. *You have been warned.*
 
 ## Usage and Results
 The code has three variants: `std` (standard representation), `gmp` (GNU MP
