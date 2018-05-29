@@ -83,14 +83,14 @@ int main()
     char binStrA[FP2BIN_STRING_MAX] = {0};
     char binStrD[FP2BIN_STRING_MAX] = {0};
 
-    const char i[20] = {'a', '\0',
+    const char i[36] = {'a', '\0',
                         'b', 'i', 'n', '(', 'a', ')', '\0',
-                        'b', 'i', 'n', '(', 'd', ')', '\0',
-                        'l', '\0',
-                        'r', '\0'};
+                        'b', 'i', 'n', '(', 'a', '+', 'b', '+', 'c', ')', '\0',
+                        '(', 'a', '+', 'b', ')', '+', 'c', '\0',
+                        'a', '+', '(', 'b', '+', 'c', ')', '\0'};
 
-    printf("|  %-12s %-30s  | %-30s   %-12s  %-12s| equal |\n",
-               i+0,   i+2,    i+9,   i+16,  i+18);
+    printf("|  %-12s %-29s| %-29s   %-12s  %-12s| equal |\n",
+               i+0,  i+2,    i+9,  i+20, i+28);
 
     for (x = 1; x < 17; x++) {
         check = 0;
@@ -126,7 +126,7 @@ int main()
             check = 1;
         }
 
-        printf("| %12.9f  %-30s  | %-30s  %12.9f  %12.9f | %-5d |\n",
+        printf("| %12.9f  %-29s| %-29s  %12.9f  %12.9f | %-5d |\n",
                mpfr_get_flt(a, MPFR_RNDD), binStrA, binStrD,
                mpfr_get_flt(l, MPFR_RNDD), mpfr_get_flt(r, MPFR_RNDD), check);
 
@@ -163,8 +163,8 @@ int main()
 		if (*d == *l && *l == *r) {
             check = 1;
         }
-        printf("| %12.9f  %-30s  | %-30s  %12.9f  %12.9f | %-5d |\n",
-                    *a, binStrA, binStrD,   *l,     *r,    check);
+        printf("| %12.9f  %-29s| %-29s  %12.9f  %12.9f | %-5d |\n",
+                   *a, binStrA, binStrD, *l,    *r,    check);
 
         /* clean up */
         free(a);
