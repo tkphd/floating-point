@@ -2,13 +2,6 @@
 This repository represents an effort to address [usnistgov/discuss #8][_git]
 by exploring floating-point rounding errors using float and MPFR data types
 
-## Problem Statement
-When addition is associative, we expect the sum of three terms, `a+b+c`, to
-be independent of computation as `(a + b) + c` or `a + (b + c)`. Due to the
-binary representation of floating-point numbers ([IEEE 754][_eee]), *or* due to
-out-of-order execution on some CPUs, this will not be the case for numerical
-approximations to floating-point summation.
-
 ## Executive Summary
 If you value associative math over standards compliance, simply choose optimization
 level `-Ofast`. This level starts with `-O3` and adds corner-cutting flags, the
@@ -20,7 +13,21 @@ I am not advocating `-funsafe-math-optimizations` without serious debate.
 It bears repeating that this flag *will change your numbers* in ways that
 the internationally agreed standards forbid. *You have been warned.*
 
-## Usage and Results
+## Dependencies
+- A C compiler, *e.g.* [GNU Compiler Collection][_gcc]
+- Standard C libraries
+- GNU [Make][_mak]
+- [MPFR][_gnu] library headers and runtime, version 4 or greater
+  - On Debian derivatives, `$ apt-get install libmpfr4 libmpfr-dev`
+
+### Test 1: Basic Associative Addition
+When addition is associative, we expect the sum of three terms, `a+b+c`, to
+be independent of computation as `(a + b) + c` or `a + (b + c)`. Due to the
+binary representation of floating-point numbers ([IEEE 754][_eee]), *or* due to
+out-of-order execution on some CPUs, this will not be the case for numerical
+approximations to floating-point summation.
+
+#### Usage and Results
 The code has three variants: `std` (standard representation), `gmp` (GNU MP
 representation), and `unsafe` (`std` with unsafe optimizations). Use the
 included Makefile or the commands in the following sections to compile the
@@ -39,85 +46,54 @@ from `0` at the decimal. Therefore,
 3/4 = 1/2+1/4 = 0.11
 ```
 
-### Dependencies
-- A C compiler, *e.g.* [GNU Compiler Collection][_gcc]
-- Standard C libraries
-- GNU [Make][_mak]
-- [MPFR][_gnu] library headers and runtime, version 4 or greater
-  - On Debian derivatives, `$ apt-get install libmpfr4 libmpfr-dev`
-
-### Built-in floating point representation
+#### Built-in floating point representation
 ```bash
   $ make std
   gcc -O3 -Wall associative.c -o std -lm && ./std
-  |  a            bin(a)                       | bin(a+b+c)                      (a+b)+c       a+(b+c)     | equal |
-  |  1.000000000  1.0                          | 1.0                             1.000000000   1.000000000 | 1     |
-  |  0.500000000  0.1                          | 0.1                             0.500000000   0.500000000 | 1     |
-  |  0.333333343  0.0101010101010101010101011  | 0.01010101010101010101011       0.333333373   0.333333343 | 0     |
-  |  0.250000000  0.01                         | 0.01                            0.250000000   0.250000000 | 1     |
-  |  0.200000003  0.00110011001100110011001101 | 0.0011001100110011001101        0.200000048   0.200000003 | 0     |
-  |  0.166666672  0.00101010101010101010101011 | 0.00101010101010101010101       0.166666627   0.166666672 | 0     |
-  |  0.142857149  0.00100100100100100100100101 | 0.00100100100100100100101       0.142857194   0.142857149 | 0     |
-  |  0.125000000  0.001                        | 0.001                           0.125000000   0.125000000 | 1     |
-  |  0.111111112  0.000111000111000111000111001| 0.000111000111000111001         0.111111164   0.111111112 | 0     |
-  |  0.100000001  0.000110011001100110011001101| 0.00011001100110011001101       0.100000024   0.100000001 | 0     |
-  |  0.090909094  0.0001011101000101110100011  | 0.00010111010001011101001       0.090909123   0.090909094 | 0     |
-  |  0.083333336  0.000101010101010101010101011| 0.00010101010101010101011       0.083333373   0.083333336 | 0     |
-  |  0.076923080  0.000100111011000100111011001| 0.0001001110110001001111        0.076923132   0.076923080 | 0     |
-  |  0.071428575  0.000100100100100100100100101| 0.0001001001001001001001        0.071428537   0.071428575 | 0     |
-  |  0.066666670  0.000100010001000100010001001| 0.00010001000100010001001       0.066666722   0.066666670 | 0     |
-  |  0.062500000  0.0001                       | 0.0001                          0.062500000   0.062500000 | 1     |
+  | a           bin(a)                       | bin(a+b+c)                (a+b)+c     a+(b+c)     | equal |
+  | 1.000000000 1.0                          | 1.0                       1.000000000 1.000000000 | 1     |
+  | 0.500000000 0.1                          | 0.1                       0.500000000 0.500000000 | 1     |
+  | 0.333333343 0.0101010101010101010101011  | 0.01010101010101010101011 0.333333373 0.333333343 | 0     |
+  | 0.250000000 0.01                         | 0.01                      0.250000000 0.250000000 | 1     |
+  | 0.200000003 0.00110011001100110011001101 | 0.0011001100110011001101  0.200000048 0.200000003 | 0     |
+  | 0.166666672 0.00101010101010101010101011 | 0.00101010101010101010101 0.166666627 0.166666672 | 0     |
+  | 0.142857149 0.00100100100100100100100101 | 0.00100100100100100100101 0.142857194 0.142857149 | 0     |
+  | 0.125000000 0.001                        | 0.001                     0.125000000 0.125000000 | 1     |
 ```
 
-### GNU MPFR floating-point representation
+#### GNU MPFR floating-point representation
 ```bash
   $ make gmp
   gcc -O3 -Wall -include "mpfr.h" associative.c -o gmp -lm -lmpfr && ./gmp
-  |  a            bin(a)                       | bin(a+b+c)                      (a+b)+c       a+(b+c)     | equal |
-  |  1.000000000  1.0                          | 1.0                             1.000000000   1.000000000 | 1     |
-  |  0.500000000  0.1                          | 0.1                             0.500000000   0.500000000 | 1     |
-  |  0.333328247  0.0101010101010101           | 0.01010101010101                0.333312988   0.333328247 | 0     |
-  |  0.250000000  0.01                         | 0.01                            0.250000000   0.250000000 | 1     |
-  |  0.199996948  0.0011001100110011           | 0.001100110011001               0.199981689   0.199996948 | 0     |
-  |  0.166664124  0.00101010101010101          | 0.001010101010101               0.166656494   0.166664124 | 0     |
-  |  0.142856598  0.001001001001001001         | 0.001001001001001               0.142852783   0.142856598 | 0     |
-  |  0.125000000  0.001                        | 0.001                           0.125000000   0.125000000 | 1     |
-  |  0.111110687  0.000111000111000111         | 0.000111000111                  0.111083984   0.111110687 | 0     |
-  |  0.099998474  0.00011001100110011          | 0.0001100110011                 0.099975586   0.099998474 | 0     |
-  |  0.090908051  0.000101110100010111         | 0.00010111010001                0.090881348   0.090908051 | 0     |
-  |  0.083332062  0.000101010101010101         | 0.00010101010101                0.083312988   0.083332062 | 0     |
-  |  0.076921463  0.0001001110110001001        | 0.000100111011                  0.076904297   0.076921463 | 0     |
-  |  0.071428299  0.0001001001001001001        | 0.0001001001001                 0.071411133   0.071428299 | 0     |
-  |  0.066665649  0.0001000100010001           | 0.000100010001                  0.066650391   0.066665649 | 0     |
-  |  0.062500000  0.0001                       | 0.0001                          0.062500000   0.062500000 | 1     |
+  | a           bin(a)               | bin(a+b+c)        (a+b)+c     a+(b+c)     | equal |
+  | 1.000000000 1.0                  | 1.0               1.000000000 1.000000000 | 1     |
+  | 0.500000000 0.1                  | 0.1               0.500000000 0.500000000 | 1     |
+  | 0.333328247 0.0101010101010101   | 0.01010101010101  0.333312988 0.333328247 | 0     |
+  | 0.250000000 0.01                 | 0.01              0.250000000 0.250000000 | 1     |
+  | 0.199996948 0.0011001100110011   | 0.001100110011001 0.199981689 0.199996948 | 0     |
+  | 0.166664124 0.00101010101010101  | 0.001010101010101 0.166656494 0.166664124 | 0     |
+  | 0.142856598 0.001001001001001001 | 0.001001001001001 0.142852783 0.142856598 | 0     |
+  | 0.125000000 0.001                | 0.001             0.125000000 0.125000000 | 1     |
 ```
 
-### Optimized floating-point representation
+#### Optimized floating-point representation
 `-funsafe-math-optimizations` enables optimizations that allow arbitrary reassociations and
 transformations with no accuracy guarantees. It also does not try to preserve the sign of zeros.
 ```bash
   $ make unsafe
   gcc -O3 -Wall -funsafe-math-optimizations associative.c -o unsafe -lm && ./unsafe
-  |  a            bin(a)                       | bin(a+b+c)                      (a+b)+c       a+(b+c)     | equal |
-  |  1.000000000  1.0                          | 1.0                             1.000000000   1.000000000 | 1     |
-  |  0.500000000  0.1                          | 0.1                             0.500000000   0.500000000 | 1     |
-  |  0.333333343  0.0101010101010101010101011  | 0.0101010101010101010101011     0.333333343   0.333333343 | 1     |
-  |  0.250000000  0.01                         | 0.01                            0.250000000   0.250000000 | 1     |
-  |  0.200000003  0.00110011001100110011001101 | 0.00110011001100110011001101    0.200000003   0.200000003 | 1     |
-  |  0.166666672  0.00101010101010101010101011 | 0.00101010101010101010101011    0.166666672   0.166666672 | 1     |
-  |  0.142857149  0.00100100100100100100100101 | 0.00100100100100100100100101    0.142857149   0.142857149 | 1     |
-  |  0.125000000  0.001                        | 0.001                           0.125000000   0.125000000 | 1     |
-  |  0.111111112  0.000111000111000111000111001| 0.000111000111000111000111001   0.111111112   0.111111112 | 1     |
-  |  0.100000001  0.000110011001100110011001101| 0.000110011001100110011001101   0.100000001   0.100000001 | 1     |
-  |  0.090909094  0.0001011101000101110100011  | 0.0001011101000101110100011     0.090909094   0.090909094 | 1     |
-  |  0.083333336  0.000101010101010101010101011| 0.000101010101010101010101011   0.083333336   0.083333336 | 1     |
-  |  0.076923080  0.000100111011000100111011001| 0.000100111011000100111011001   0.076923080   0.076923080 | 1     |
-  |  0.071428575  0.000100100100100100100100101| 0.000100100100100100100100101   0.071428575   0.071428575 | 1     |
-  |  0.066666670  0.000100010001000100010001001| 0.000100010001000100010001001   0.066666670   0.066666670 | 1     |
-  |  0.062500000  0.0001                       | 0.0001                          0.062500000   0.062500000 | 1     |
+  | a           bin(a)                       | bin(a+b+c)                   (a+b)+c     a+(b+c)     | equal |
+  | 1.000000000 1.0                          | 1.0                          1.000000000 1.000000000 | 1     |
+  | 0.500000000 0.1                          | 0.1                          0.500000000 0.500000000 | 1     |
+  | 0.333333343 0.0101010101010101010101011  | 0.0101010101010101010101011  0.333333343 0.333333343 | 1     |
+  | 0.250000000 0.01                         | 0.01                         0.250000000 0.250000000 | 1     |
+  | 0.200000003 0.00110011001100110011001101 | 0.00110011001100110011001101 0.200000003 0.200000003 | 1     |
+  | 0.166666672 0.00101010101010101010101011 | 0.00101010101010101010101011 0.166666672 0.166666672 | 1     |
+  | 0.142857149 0.00100100100100100100100101 | 0.00100100100100100100100101 0.142857149 0.142857149 | 1     |
+  | 0.125000000 0.001                        | 0.001                        0.125000000 0.125000000 | 1     |
 ```
 
-### Discussion
+#### Discussion
 As [@JRMatey-NIST noted][_jmt], this is a straight-forward byproduct of the binary
 representation of floating-point numbers. Exact representation is possible for integral
 exponents of 2; any other number incurs [rounding error][_rnd]. This is good to know,
@@ -127,6 +103,32 @@ Since many scientific computing applications model diffusive processes (heat tra
 mass diffusion, etc.), the effect is expected to be small: the perturbations caused
 by round-off error will be smoothed out by the stable numerical scheme without any
 additional effort on the part of the programmer.
+
+### Test 2: Shuffled Sum
+Ideally, the sum `10*0.001 + 9*0.01 + 9*0.1 + 9*1. + 9*10 + 9*100 + 9*1000 = 10000`.
+However, due to the same floating point representation problem, variations arise
+from the order of summation. As a demonstration, this program will generate a vector
+of 64 numbers (10 + 9*6), then for each of 1 million trials, the same vector
+gets shuffled before summing. The histogram of values is then reported.
+For additional details, see the [original thread][_git].
+
+#### Usage and Results
+There is only one variant, `shuffle`, which can be built using the Makefile or the
+command listed below.
+
+#### Built-in floating point representation
+```bash
+  $ make shuffle 
+  g++ -O -Wall -pedantic -std=c++11 -frounding-math shuffle-sum.cpp -o shuffle && ./shuffle
+   9999.99414062500000000000000000:  0.033300001 %
+   9999.99511718750000000000000000:  0.624599993 %
+   9999.99609375000000000000000000:  4.240699768 %
+   9999.99707031250000000000000000: 15.360699654 %
+   9999.99804687500000000000000000: 34.903400421 %
+   9999.99902343750000000000000000: 33.413898468 %
+  10000.00000000000000000000000000: 11.187700272 %
+  10000.00097656250000000000000000:  0.235699996 %
+```
 
 <!--References-->
 [_eee]: https://en.wikipedia.org/wiki/IEEE_754
