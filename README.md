@@ -2,6 +2,13 @@
 This repository represents an effort to address [usnistgov/discuss #8][_git]
 by exploring floating-point rounding errors using float and MPFR data types
 
+## Problem Statement
+When addition is associative, we expect the sum of three terms, `a+b+c`, to
+be independent of computation as `(a + b) + c` or `a + (b + c)`. Due to the
+binary representation of floating-point numbers ([IEEE 754][_eee]), *or* due to
+out-of-order execution on some CPUs, this will not be the case for numerical
+approximations to floating-point summation.
+
 ## Usage and Results
 
 ### Dependencies
@@ -105,6 +112,7 @@ representation of floating-point numbers. Exact representation is possible for i
 exponents of 2; any other number incurs [rounding error][_rnd].
 
 <!--References-->
+[_eee]: https://en.wikipedia.org/wiki/IEEE_754
 [_gcc]: https://gcc.gnu.org/
 [_git]: https://github.com/usnistgov/discuss/issues/8
 [_gnu]: http://www.mpfr.org/
