@@ -3,57 +3,96 @@
    \brief  Explore floating-point rounding errors using float and MPFR data types
 
    For built-in floating point representation, compile and run using
-
-   $ gcc -Wall associative.c -o associative && ./associative
-   |  a             b             c           |  d             l             r           |
-   |  1.000000000   1.000000000  -1.000000000 |  1.000000000   1.000000000   1.000000000 |
-   |  0.250000000   1.000000000  -1.000000000 |  0.250000000   0.250000000   0.250000000 |
-   |  0.062500000   1.000000000  -1.000000000 |  0.062500000   0.062500000   0.062500000 |
-   |  0.015625000   1.000000000  -1.000000000 |  0.015625000   0.015625000   0.015625000 |
-   |  0.003906250   1.000000000  -1.000000000 |  0.003906250   0.003906250   0.003906250 |
-   |  0.000976562   1.000000000  -1.000000000 |  0.000976562   0.000976562   0.000976562 |
-   |  0.000244141   1.000000000  -1.000000000 |  0.000244141   0.000244141   0.000244141 |
-   |  0.000061035   1.000000000  -1.000000000 |  0.000061035   0.000061035   0.000061035 |
-   |  0.000015259   1.000000000  -1.000000000 |  0.000015259   0.000015259   0.000015259 |
-   |  0.000003815   1.000000000  -1.000000000 |  0.000003815   0.000003815   0.000003815 |
+   $ gcc -Wall associative.c -o associative -lm && ./associative
 
    For GNU MPFR floating-point representation, compile and run using
-
    $ gcc -Wall -include "mpfr.h" associative.c -o associative -lmpfr && ./associative
-   |  a             b             c           |  d             l             r           |
-   |  1.000000000   1.000000000  -1.000000000 |  1.000000000   1.000000000   1.000000000 |
-   |  0.250000000   1.000000000  -1.000000000 |  0.250000000   0.250000000   0.250000000 |
-   |  0.062500000   1.000000000  -1.000000000 |  0.062500000   0.062500000   0.062500000 |
-   |  0.015625000   1.000000000  -1.000000000 |  0.015625000   0.015625000   0.015625000 |
-   |  0.003906250   1.000000000  -1.000000000 |  0.003906250   0.003906250   0.003906250 |
-   |  0.000976562   1.000000000  -1.000000000 |  0.000976562   0.000976562   0.000976562 |
-   |  0.000244141   1.000000000  -1.000000000 |  0.000244141   0.000244141   0.000244141 |
-   |  0.000061035   1.000000000  -1.000000000 |  0.000061035   0.000061035   0.000061035 |
-   |  0.000015259   1.000000000  -1.000000000 | -0.000000000  -0.000000000   0.000015259 |
-   associative: associative.c:96: main: Assertion `mpfr_get_flt(l, MPFR_RNDD) == mpfr_get_flt(r, MPFR_RNDD)' failed.
-   Aborted
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
+#include <string.h>
 
+/* Define functions to convert float to binary
+   based on http://www.exploringbinary.com/converting-floating-point-numbers-to-binary-strings-in-c/
+   by Rick Regan (6 May 2009)
+*/
+
+/* FP2BIN_STRING_MAX covers the longest binary string (2^-1074 plus "0." and string terminator) */
+#define FP2BIN_STRING_MAX 1077
+
+void fp2bin_i(double fp_int, char* binString)
+{
+        int bitCount = 0;
+        int i;
+        char binString_temp[FP2BIN_STRING_MAX];
+
+        do {
+                binString_temp[bitCount++] = '0' + (int)fmod(fp_int,2);
+                fp_int = floor(fp_int/2);
+        } while (fp_int > 0);
+
+         /* Reverse the binary string */
+         for (i=0; i<bitCount; i++)
+                 binString[i] = binString_temp[bitCount-i-1];
+
+         binString[bitCount] = 0; /* Null terminator */
+}
+
+void fp2bin_f(double fp_frac, char* binString)
+{
+    int bitCount = 0;
+    double fp_int;
+
+    while (fp_frac > 0) {
+    	fp_frac*=2;
+        fp_frac = modf(fp_frac,&fp_int);
+        binString[bitCount++] = '0' + (int)fp_int;
+    }
+    binString[bitCount] = 0; /* Null terminator */
+}
+
+void fp2bin(double fp, char* binString)
+{
+        double fp_int, fp_frac;
+
+        /* Separate integer and fractional parts */
+        fp_frac = modf(fp,&fp_int);
+
+        /* Convert integer part, if any */
+        if (fp_int != 0)
+                fp2bin_i(fp_int,binString);
+        else
+                strcpy(binString,"0");
+
+        strcat(binString,"."); /* Radix point */
+
+        /* Convert fractional part, if any */
+        if (fp_frac != 0)
+                fp2bin_f(fp_frac,binString+strlen(binString)); /* Append */
+        else
+                strcpy(binString+strlen(binString),"0");
+}
+
+/* Test associative addition of 1, -1, and a number less than 1 */
 int main()
 {
-    int x, check;
+        double x;
+        int check;
+    char binStrA[FP2BIN_STRING_MAX] = {0};
+    char binStrD[FP2BIN_STRING_MAX] = {0};
 
-    const char i[12] = {'a', '\0',
-                        'b', '\0',
-                        'c', '\0',
-                        'd', '\0',
+    const char i[20] = {'a', '\0',
+                        'b', 'i', 'n', '(', 'a', ')', '\0',
+                        'b', 'i', 'n', '(', 'd', ')', '\0',
                         'l', '\0',
                         'r', '\0'};
 
-    printf("|  %-12s  %-12s  %-12s|  %-12s  %-12s  %-12s| equal |\n",
-               i+0,    i+2,  i+4,    i+6,   i+8,   i+10);
+    printf("|  %-12s %-30s  | %-30s   %-12s  %-12s| equal |\n",
+               i+0,   i+2,    i+9,   i+16,  i+18);
 
-    for (x = 2; x < 33; x += 2) {
+    for (x = 1; x < 17; x++) {
         check = 0;
 
         #ifdef __GNU_MP__
@@ -61,7 +100,7 @@ int main()
 
         /* initialize variables */
         mpfr_t a, b, c, d, l, r;
-        mpfr_init_set_d(a, 1./x, MPFR_RNDD);
+        mpfr_init_set_d(a, 1. / x, MPFR_RNDD);
         mpfr_init_set_d(b, 1, MPFR_RNDD);
         mpfr_init_set_d(c,-1, MPFR_RNDD);
         mpfr_init_set_d(d, 0, MPFR_RNDD);
@@ -79,21 +118,17 @@ int main()
         mpfr_add(r, r, a, MPFR_RNDD);
 
         /* report values */
+        fp2bin(mpfr_get_flt(a, MPFR_RNDD), binStrA);
+        fp2bin(mpfr_get_flt(d, MPFR_RNDD), binStrD);
+
         if (mpfr_get_flt(d, MPFR_RNDD) == mpfr_get_flt(l, MPFR_RNDD) &&
             mpfr_get_flt(l, MPFR_RNDD) == mpfr_get_flt(r, MPFR_RNDD) ) {
             check = 1;
         }
 
-        printf("| %12.9f  %12.9f  %12.9f | %12.9f  %12.9f  %12.9f | %-5d |\n",
-               mpfr_get_flt(a, MPFR_RNDD), mpfr_get_flt(b, MPFR_RNDD),
-               mpfr_get_flt(c, MPFR_RNDD), mpfr_get_flt(d, MPFR_RNDD),
-               mpfr_get_flt(l, MPFR_RNDD), mpfr_get_flt(r, MPFR_RNDD),
-               check);
-
-        /*
-          assert(mpfr_get_flt(d, MPFR_RNDD) == mpfr_get_flt(l, MPFR_RNDD));
-          assert(mpfr_get_flt(l, MPFR_RNDD) == mpfr_get_flt(r, MPFR_RNDD));
-        */
+        printf("| %12.9f  %-30s  | %-30s  %12.9f  %12.9f | %-5d |\n",
+               mpfr_get_flt(a, MPFR_RNDD), binStrA, binStrD,
+               mpfr_get_flt(l, MPFR_RNDD), mpfr_get_flt(r, MPFR_RNDD), check);
 
         /* clean up */
         mpfr_clear(a);
@@ -113,7 +148,7 @@ int main()
         l = (float*)malloc(sizeof(float));
         r = (float*)malloc(sizeof(float));
 
-        *a = 1./x;
+        *a = 1. / x;
         *b = 1;
         *c =-1;
 
@@ -123,16 +158,13 @@ int main()
         *r =  *a +(*b + *c);
 
         /* report values */
+        fp2bin(*a, binStrA);
+        fp2bin(*d, binStrD);
 		if (*d == *l && *l == *r) {
             check = 1;
         }
-        printf(     "| %12.9f  %12.9f  %12.9f | %12.9f  %12.9f  %12.9f | %-5d |\n",
-                    *a,     *b,     *c,      *d,     *l,     *r, check);
-
-        /*
-          assert(*d == *l);
-          assert(*l == *r);
-        */
+        printf("| %12.9f  %-30s  | %-30s  %12.9f  %12.9f | %-5d |\n",
+                    *a, binStrA, binStrD,   *l,     *r,    check);
 
         /* clean up */
         free(a);
