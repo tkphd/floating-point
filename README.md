@@ -114,14 +114,28 @@ by round-off error will be smoothed out by the stable numerical scheme without a
 additional effort on the part of the programmer.
 
 ### Test 2: Shuffled Sum
-Ideally, the sequence `10*0.001 + 9*0.01 + 9*0.1 + 9*1. + 9*10 + 9*100 + 9*1000 = 10000`.
+Ideally, the sequence
+```
+     1         1       1
+10×  /   + 9×  /  + 9× / + 9×1 + 9×10 + 9×100 + 9×1000 = 10000.
+    1000      100      10
+```
 However, due to the same floating point representation problem, variations arise
 from the order of summation. As a demonstration, this program will generate a vector
 of 64 numbers (10 + 9*6), then for each of 1 million trials, the same vector
 gets shuffled before summing. The histogram of values is then reported.
 For additional details, see the [original thread][_git].
 
-Similarly, the sequence `8*0.0625 + 8*0.125 + 8*0.25 + 9*.5 + 8*1 + 8*2 + 8*4 + 8*8 = 128`.
+Similarly, the sequence
+```
+   1      1      1      1
+8× / + 8× / + 8× / + 9× / + 8×1 + 8×2 + 8×4 + 8×8 = 128.
+   16     8      4      2
+```
+The program will generate a vector of 65 numbers (9 + 8*7) and,
+for each of 1 million trials, shuffle the vector before summing.
+Due to the exact representation of powers-of-two, only one result
+(128.) is expected for all million shuffles.
 
 #### Usage and Results
 There are two variants, `shuffle` and `shuffle10`, which can be built using the Makefile or the
