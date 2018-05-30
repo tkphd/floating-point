@@ -8,6 +8,12 @@ of floating-point numbers in a binary data type, in compliance with
 role of the CPU, instruction sets, or [dynamic execution][_dyn] in
 the deviations.
 
+### Table of Contents
+1. [Three Term Addition][#three-term-addition]
+2. [Shuffled Summation][#shuffled-summation]
+3. [Conclusions][#conclusions]
+4. [Further Reading][#further-reading]
+
 ## Basic Premise
 Addition of real numbers is [associative][_add]: inserting parentheses
 must not change the computed sum. For example,
@@ -29,25 +35,25 @@ but can be used to visualize floating point representations.
 - [MPFR][_gnu] library headers and runtime, version 4 or greater
   - On Debian derivatives, `$ apt-get install libmpfr4 libmpfr-dev`
 
-## Test 1: Basic Associative Addition
-When addition is associative, we expect the sum of three terms, `a+b+c`, to
-be independent of computation as `(a + b) + c` or `a + (b + c)`. Due to the
-binary representation of floating-point numbers ([IEEE 754][_eee]), *or* due to
-out-of-order execution on some CPUs, this will not be the case for numerical
+# Three Term Addition
+When addition is associative, we expect the sum of three terms, `a+b+c`,
+to be independent of computation as `(a+b)+c` or `a+(b+c)`. Due to the
+binary representation of floating-point numbers ([IEEE 754][_eee]), *or* due
+to out-of-order execution on some CPUs, this will not be the case for numerical
 approximations to floating-point summation.
 
-### Usage and Results
+## Usage and Results
 The code has three variants: `std` (standard representation), `gmp` (GNU MP
 representation), and `unsafe` (`std` with unsafe optimizations). Use the
 included Makefile or the commands in the following sections to compile the
 executables.
 
-Each program will output the value of `a` in decimal and binary form, `d` in
-binary form, and both of the associative expressions in decimal form. When
-the expressions agree, a `1` is printed in the last column; otherwise, it
-will be `0`. The binary form of a floating-point number is similar to an
-integer binary, with each bit representing a power of two that decreases
-from `0` at the decimal. Therefore,
+Each program will output the value of `a` in decimal and binary form, `a+b+c`
+in binary form, and both of the associative expressions in decimal form. When
+the expressions agree, a `1` is printed in the last column; otherwise, it will
+be `0`. The binary form of a floating-point number is similar to an integer
+binary, with each bit representing a power of two that decreases from `0` at
+the decimal. Therefore,
 ```
 1   = 2^( 0)  = 1.00
 1/2 = 2^(-1)  = 0.10
@@ -55,54 +61,61 @@ from `0` at the decimal. Therefore,
 3/4 = 1/2+1/4 = 0.11
 ```
 
-#### Built-in floating point representation
+### Built-in floating point representation
 ```bash
-  $ make std
-  gcc -O3 -Wall associative.c -o std -lm && ./std
-  | a           bin(a)                       | bin(a+b+c)                (a+b)+c     a+(b+c)     | equal |
-  | 1.000000000 1.0                          | 1.0                       1.000000000 1.000000000 | 1     |
-  | 0.500000000 0.1                          | 0.1                       0.500000000 0.500000000 | 1     |
-  | 0.333333343 0.0101010101010101010101011  | 0.01010101010101010101011 0.333333373 0.333333343 | 0     |
-  | 0.250000000 0.01                         | 0.01                      0.250000000 0.250000000 | 1     |
-  | 0.200000003 0.00110011001100110011001101 | 0.0011001100110011001101  0.200000048 0.200000003 | 0     |
-  | 0.166666672 0.00101010101010101010101011 | 0.00101010101010101010101 0.166666627 0.166666672 | 0     |
-  | 0.142857149 0.00100100100100100100100101 | 0.00100100100100100100101 0.142857194 0.142857149 | 0     |
-  | 0.125000000 0.001                        | 0.001                     0.125000000 0.125000000 | 1     |
+$ make std
+gcc -O3 -Wall associative.c -o std -lm && ./std
+| a           bin(a)                       | bin(a+b+c)                (a+b)+c     a+(b+c)     | equal |
+| 1.000000000 1.0                          | 1.0                       1.000000000 1.000000000 | 1     |
+| 0.500000000 0.1                          | 0.1                       0.500000000 0.500000000 | 1     |
+| 0.333333343 0.0101010101010101010101011  | 0.01010101010101010101011 0.333333373 0.333333343 | 0     |
+| 0.250000000 0.01                         | 0.01                      0.250000000 0.250000000 | 1     |
+| 0.200000003 0.00110011001100110011001101 | 0.0011001100110011001101  0.200000048 0.200000003 | 0     |
+| 0.166666672 0.00101010101010101010101011 | 0.00101010101010101010101 0.166666627 0.166666672 | 0     |
+| 0.142857149 0.00100100100100100100100101 | 0.00100100100100100100101 0.142857194 0.142857149 | 0     |
+| 0.125000000 0.001                        | 0.001                     0.125000000 0.125000000 | 1     |
 ```
 
-#### GNU MPFR floating-point representation
+### GNU MPFR floating-point representation
 ```bash
-  $ make gmp
-  gcc -O3 -Wall -include "mpfr.h" associative.c -o gmp -lm -lmpfr && ./gmp
-  | a           bin(a)               | bin(a+b+c)        (a+b)+c     a+(b+c)     | equal |
-  | 1.000000000 1.0                  | 1.0               1.000000000 1.000000000 | 1     |
-  | 0.500000000 0.1                  | 0.1               0.500000000 0.500000000 | 1     |
-  | 0.333328247 0.0101010101010101   | 0.01010101010101  0.333312988 0.333328247 | 0     |
-  | 0.250000000 0.01                 | 0.01              0.250000000 0.250000000 | 1     |
-  | 0.199996948 0.0011001100110011   | 0.001100110011001 0.199981689 0.199996948 | 0     |
-  | 0.166664124 0.00101010101010101  | 0.001010101010101 0.166656494 0.166664124 | 0     |
-  | 0.142856598 0.001001001001001001 | 0.001001001001001 0.142852783 0.142856598 | 0     |
-  | 0.125000000 0.001                | 0.001             0.125000000 0.125000000 | 1     |
+$ make gmp
+gcc -O3 -Wall -include "mpfr.h" associative.c -o gmp -lm -lmpfr && ./gmp
+| a           bin(a)               | bin(a+b+c)        (a+b)+c     a+(b+c)     | equal |
+| 1.000000000 1.0                  | 1.0               1.000000000 1.000000000 | 1     |
+| 0.500000000 0.1                  | 0.1               0.500000000 0.500000000 | 1     |
+| 0.333328247 0.0101010101010101   | 0.01010101010101  0.333312988 0.333328247 | 0     |
+| 0.250000000 0.01                 | 0.01              0.250000000 0.250000000 | 1     |
+| 0.199996948 0.0011001100110011   | 0.001100110011001 0.199981689 0.199996948 | 0     |
+| 0.166664124 0.00101010101010101  | 0.001010101010101 0.166656494 0.166664124 | 0     |
+| 0.142856598 0.001001001001001001 | 0.001001001001001 0.142852783 0.142856598 | 0     |
+| 0.125000000 0.001                | 0.001             0.125000000 0.125000000 | 1     |
 ```
 
-#### Optimized floating-point representation
-`-funsafe-math-optimizations` enables optimizations that allow arbitrary reassociations and
-transformations with no accuracy guarantees. It also does not try to preserve the sign of zeros.
+### Optimized floating-point representation
+Per the [Using the GNU Compiler Collection(GCC) &sect;3.10][_gcc], `-funsafe-math-optimizations`
+enables optimizations that
+- assume both arguments and results are valid
+- violate IEEE and ANSI standards
+- change the floating-point unit [control word][_fpu]
+- cause programs that rely on exact implementation of IEEE or ISO rules to fail
+- may yield faster code for programs that do not require the guarantees of these specifications.
+
+In other words, it is ill-advised for production code. However,
 ```bash
-  $ make unsafe
-  gcc -O3 -Wall -funsafe-math-optimizations associative.c -o unsafe -lm && ./unsafe
-  | a           bin(a)                       | bin(a+b+c)                   (a+b)+c     a+(b+c)     | equal |
-  | 1.000000000 1.0                          | 1.0                          1.000000000 1.000000000 | 1     |
-  | 0.500000000 0.1                          | 0.1                          0.500000000 0.500000000 | 1     |
-  | 0.333333343 0.0101010101010101010101011  | 0.0101010101010101010101011  0.333333343 0.333333343 | 1     |
-  | 0.250000000 0.01                         | 0.01                         0.250000000 0.250000000 | 1     |
-  | 0.200000003 0.00110011001100110011001101 | 0.00110011001100110011001101 0.200000003 0.200000003 | 1     |
-  | 0.166666672 0.00101010101010101010101011 | 0.00101010101010101010101011 0.166666672 0.166666672 | 1     |
-  | 0.142857149 0.00100100100100100100100101 | 0.00100100100100100100100101 0.142857149 0.142857149 | 1     |
-  | 0.125000000 0.001                        | 0.001                        0.125000000 0.125000000 | 1     |
+$ make unsafe
+gcc -O3 -Wall -funsafe-math-optimizations associative.c -o unsafe -lm && ./unsafe
+| a           bin(a)                       | bin(a+b+c)                   (a+b)+c     a+(b+c)     | equal |
+| 1.000000000 1.0                          | 1.0                          1.000000000 1.000000000 | 1     |
+| 0.500000000 0.1                          | 0.1                          0.500000000 0.500000000 | 1     |
+| 0.333333343 0.0101010101010101010101011  | 0.0101010101010101010101011  0.333333343 0.333333343 | 1     |
+| 0.250000000 0.01                         | 0.01                         0.250000000 0.250000000 | 1     |
+| 0.200000003 0.00110011001100110011001101 | 0.00110011001100110011001101 0.200000003 0.200000003 | 1     |
+| 0.166666672 0.00101010101010101010101011 | 0.00101010101010101010101011 0.166666672 0.166666672 | 1     |
+| 0.142857149 0.00100100100100100100100101 | 0.00100100100100100100100101 0.142857149 0.142857149 | 1     |
+| 0.125000000 0.001                        | 0.001                        0.125000000 0.125000000 | 1     |
 ```
 
-#### Discussion
+### Discussion
 As [@JRMatey-NIST noted][_jmt], this is a straight-forward byproduct of the binary
 representation of floating-point numbers. Exact representation is possible for integral
 exponents of 2; any other number incurs [rounding error][_rnd]. This is good to know,
@@ -113,8 +126,8 @@ mass diffusion, etc.), the effect is expected to be small: the perturbations cau
 by round-off error will be smoothed out by the stable numerical scheme without any
 additional effort on the part of the programmer.
 
-### Test 2: Shuffled Sum
-Ideally, the sequence
+# Shuffled Summation
+Ideally, the sequence of decimals (powers of 10)
 ```
      1         1       1
 10×  /   + 9×  /  + 9× / + 9×1 + 9×10 + 9×100 + 9×1000 = 10000.
@@ -126,7 +139,7 @@ of 64 numbers (10 + 9*6), then for each of 1 million trials, the same vector
 gets shuffled before summing. The histogram of values is then reported.
 For additional details, see the [original thread][_git].
 
-Similarly, the sequence
+Similarly, the sequence of binaries (powers of 2)
 ```
    1      1      1      1
 8× / + 8× / + 8× / + 9× / + 8×1 + 8×2 + 8×4 + 8×8 = 128.
@@ -137,32 +150,32 @@ for each of 1 million trials, shuffle the vector before summing.
 Due to the exact representation of powers-of-two, only one result
 (128.) is expected for all million shuffles.
 
-#### Usage and Results
+## Usage and Results
 There are two variants, `shuffle` and `shuffle10`, which can be built using the Makefile or the
 command listed below.
 
-#### Floating point representation of decimal sequence ($10^x$)
+### Floating point representation of decimal sequence `∑10ⁿ`
 ```bash
-  $ make shuffle10
-  g++ -O -Wall -pedantic -std=c++11 -DDECIMAL shuffle-sum.cpp -o shuffle && ./shuffle
-   9999.99414062500000000000000000:  0.033300001 %
-   9999.99511718750000000000000000:  0.624599993 %
-   9999.99609375000000000000000000:  4.240699768 %
-   9999.99707031250000000000000000: 15.360699654 %
-   9999.99804687500000000000000000: 34.903400421 %
-   9999.99902343750000000000000000: 33.413898468 %
-  10000.00000000000000000000000000: 11.187700272 %
-  10000.00097656250000000000000000:  0.235699996 %
+$ make shuffle10
+g++ -O -Wall -pedantic -std=c++11 -DDECIMAL shuffle-sum.cpp -o shuffle && ./shuffle
+ 9999.99414062500000000000000000:  0.033300001 %
+ 9999.99511718750000000000000000:  0.624599993 %
+ 9999.99609375000000000000000000:  4.240699768 %
+ 9999.99707031250000000000000000: 15.360699654 %
+ 9999.99804687500000000000000000: 34.903400421 %
+ 9999.99902343750000000000000000: 33.413898468 %
+10000.00000000000000000000000000: 11.187700272 %
+10000.00097656250000000000000000:  0.235699996 %
 ```
 
-#### Floating point representation of binary sequence ($2^x$)
+### Floating point representation of binary sequence `∑2ⁿ`
 ```bash
-  $ make shuffle
-  g++ -O -Wall -pedantic -std=c++11 shuffle-sum.cpp -o shuffle && ./shuffle
-  128.00000000000000000000000000: 100.000000000 %
+$ make shuffle
+g++ -O -Wall -pedantic -std=c++11 shuffle-sum.cpp -o shuffle && ./shuffle
+128.00000000000000000000000000: 100.000000000 %
 ```
 
-#### Discussion
+### Discussion
 The sequence comprised exclusively of powers of 2 is represented exactly,
 *i.e.* 1 million repetitions produce the same result, exactly 128., every
 time. The sequence of powers of 10 is approximate, with the exact result
@@ -180,9 +193,9 @@ as a teaching aid.
 
 If strict adherence to mathematical law is required, [high-precision math libraries][_lib]
 should be used instead of the built-in data types. [MPFR][_mpf] is one such
-libray for C; [MPMath][_mpm] is one for Python.
+library for C; [MPMath][_mpm] is one for Python.
 
-## Further Reading on Floating-Point Representations
+# Further Reading
 1. David Goldberg, [What Every Computer Scientist Should Know About Floating-Point Arithmetic](https://dl.acm.org/citation.cfm?id=103163) (1991).
    Concise summary of how the standard floating-point representation works, and pitfalls to avoid.
 2. Donald Knuth, [The Art of Computer Programming, Vol. 2, Ed. 3, &sect;4.2.2: Accuracy of Floating Point Arithmetic](https://books.google.com/books?id=Zu-HAwAAQBAJ&lpg=PT4&dq=knuth%20taocp%20vol%202&pg=PT385#v=onepage&q&f=true) (1997).
