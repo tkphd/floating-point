@@ -9,10 +9,10 @@ role of the CPU, instruction sets, or [dynamic execution][_dyn] in
 the deviations.
 
 ### Table of Contents
-1. [Three Term Addition][#three-term-addition]
-2. [Shuffled Summation][#shuffled-summation]
-3. [Conclusions][#conclusions]
-4. [Further Reading][#further-reading]
+1. [Three Term Addition](#three-term-addition)
+2. [Shuffled Summation](#shuffled-summation)
+3. [Conclusions](#conclusions)
+4. [Further Reading](#further-reading)
 
 ## Basic Premise
 Addition of real numbers is [associative][_add]: inserting parentheses
