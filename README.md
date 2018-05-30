@@ -35,7 +35,7 @@ but can be used to visualize floating point representations.
 - [MPFR][_gnu] library headers and runtime, version 4 or greater
   - On Debian derivatives, `$ apt-get install libmpfr4 libmpfr-dev`
 
-# Three Term Addition
+# <a name="three-term-addition"></a>Three Term Addition
 When addition is associative, we expect the sum of three terms, `a+b+c`,
 to be independent of computation as `(a+b)+c` or `a+(b+c)`. Due to the
 binary representation of floating-point numbers ([IEEE 754][_eee]), *or* due
@@ -126,7 +126,7 @@ mass diffusion, etc.), the effect is expected to be small: the perturbations cau
 by round-off error will be smoothed out by the stable numerical scheme without any
 additional effort on the part of the programmer.
 
-# Shuffled Summation
+# <a name="shuffled-summation"></a>Shuffled Summation
 Ideally, the sequence of decimals (powers of 10)
 ```
      1         1       1
@@ -181,7 +181,7 @@ The sequence comprised exclusively of powers of 2 is represented exactly,
 time. The sequence of powers of 10 is approximate, with the exact result
 computed in only 12 % of the million repetitions.
 
-# Conclusion
+# <a name="conclusions"></a>Conclusions
 For both test cases — associativity of `a+b+c` and shuffled summations
 equal to `10000` (decimal) and `128` (binary) — the programs in this
 repository demonstrate that deviations from mathematically expected results
@@ -191,11 +191,12 @@ not computer hardware or CPU instruction sets. While this inadequacy of
 provide simple, repeatable examples of the phenomenon, and may be of use
 as a teaching aid.
 
-If strict adherence to mathematical law is required, [high-precision math libraries][_lib]
-should be used instead of the built-in data types. [MPFR][_mpf] is one such
-library for C; [MPMath][_mpm] is one for Python.
+If strict adherence to mathematical law is required, use a [high-precision math library][_lib].
+For example, instead of the built-in data types, use
+- [MPFR][_mpf] for C/C++.
+- [MPMath][_mpm] for Python.
 
-# Further Reading
+# <a name="further-reading"></a>Further Reading
 1. David Goldberg, [What Every Computer Scientist Should Know About Floating-Point Arithmetic](https://dl.acm.org/citation.cfm?id=103163) (1991).
    Concise summary of how the standard floating-point representation works, and pitfalls to avoid.
 2. Donald Knuth, [The Art of Computer Programming, Vol. 2, Ed. 3, &sect;4.2.2: Accuracy of Floating Point Arithmetic](https://books.google.com/books?id=Zu-HAwAAQBAJ&lpg=PT4&dq=knuth%20taocp%20vol%202&pg=PT385#v=onepage&q&f=true) (1997).
