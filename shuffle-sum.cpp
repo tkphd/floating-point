@@ -22,7 +22,7 @@
 
 int main()
 {
-    std::map<float,int> imprecision;
+    std::map<float,unsigned int> imprecision;
     const int N = 1e6;
 
     std::random_device Maxwell;
@@ -64,8 +64,8 @@ int main()
         imprecision[z]++;
     }
 
-    for (std::map<float,int>::const_iterator it = imprecision.begin(); it != imprecision.end(); it++) {
-        printf("%32.26f: %12.9f %%\n", it->first, float(100*it->second)/N);
+    for (std::map<float,unsigned int>::const_iterator it = imprecision.begin(); it != imprecision.end(); it++) {
+        printf("%32.26f: %12.9f %%\n", it->first, double(100*it->second)/N);
     }
 
     return 0;
