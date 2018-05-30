@@ -3,7 +3,10 @@ This repository represents an effort to address [usnistgov/discuss #8][_git]
 by exploring floating-point rounding errors using float and MPFR data types
 
 ## Executive Summary
-If you value associative math over standards compliance, simply choose optimization
+Toy problems demonstrate that the binary representation of floating-point values
+([IEEE 754][_eee]) is very good when pure powers of 2 are involved, with roundoff errors
+apparent for any other number. This is neither surprising nor interesting.
+~If you value associative math over standards compliance, simply choose optimization
 level `-Ofast`. This level starts with `-O3` and adds corner-cutting flags, the
 most relevant of which is `-funsafe-math-optimizations`, which allows the compiler
 to *change your numbers* to behave in ways it thinks you want, rather than how
@@ -11,7 +14,7 @@ IEEE 754 expects.
 
 I am not advocating `-funsafe-math-optimizations` without serious debate.
 It bears repeating that this flag *will change your numbers* in ways that
-the internationally agreed standards forbid. *You have been warned.*
+the internationally agreed standards forbid. *You have been warned.*~
 
 ## Dependencies
 - A C compiler, *e.g.* [GNU Compiler Collection][_gcc]
@@ -105,21 +108,23 @@ by round-off error will be smoothed out by the stable numerical scheme without a
 additional effort on the part of the programmer.
 
 ### Test 2: Shuffled Sum
-Ideally, the sum `10*0.001 + 9*0.01 + 9*0.1 + 9*1. + 9*10 + 9*100 + 9*1000 = 10000`.
+Ideally, the sequence `10*0.001 + 9*0.01 + 9*0.1 + 9*1. + 9*10 + 9*100 + 9*1000 = 10000`.
 However, due to the same floating point representation problem, variations arise
 from the order of summation. As a demonstration, this program will generate a vector
 of 64 numbers (10 + 9*6), then for each of 1 million trials, the same vector
 gets shuffled before summing. The histogram of values is then reported.
 For additional details, see the [original thread][_git].
 
+Similarly, the sequence `8*0.0625 + 8*0.125 + 8*0.25 + 9*.5 + 8*1 + 8*2 + 8*4 + 8*8 = 128`.
+
 #### Usage and Results
-There is only one variant, `shuffle`, which can be built using the Makefile or the
+There are two variants, `shuffle` and `shuffle10`, which can be built using the Makefile or the
 command listed below.
 
-#### Built-in floating point representation
+#### Floating point representation of decimal sequence ($10^x$)
 ```bash
-  $ make shuffle 
-  g++ -O -Wall -pedantic -std=c++11 -frounding-math shuffle-sum.cpp -o shuffle && ./shuffle
+  $ make shuffle10
+  g++ -O -Wall -pedantic -std=c++11 -DDECIMAL shuffle-sum.cpp -o shuffle && ./shuffle
    9999.99414062500000000000000000:  0.033300001 %
    9999.99511718750000000000000000:  0.624599993 %
    9999.99609375000000000000000000:  4.240699768 %
@@ -129,6 +134,21 @@ command listed below.
   10000.00000000000000000000000000: 11.187700272 %
   10000.00097656250000000000000000:  0.235699996 %
 ```
+
+#### Floating point representation of binary sequence ($2^x$)
+```bash
+  $ make shuffle
+  g++ -O -Wall -pedantic -std=c++11 shuffle-sum.cpp -o shuffle && ./shuffle
+  128.00000000000000000000000000: 100.000000000 %
+```
+
+#### Discussion
+The sequence comprised exclusively of powers of 2 is represented exactly,
+while the sequence of powers of 10 is approximate, with competition between
+several similar results. This further demonstrates that these toy problems
+reflect "features" of the binary data format, rather than anything interesting
+with respect to computer hardware.
+
 
 <!--References-->
 [_eee]: https://en.wikipedia.org/wiki/IEEE_754

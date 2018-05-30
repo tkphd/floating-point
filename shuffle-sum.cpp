@@ -30,6 +30,7 @@ int main()
     prng.seed(Maxwell());
 
     std::vector<float> x;
+    #ifdef DECIMAL
     for (unsigned int i = 0; i < 9; i++) {
         x.push_back(   0.001);
         x.push_back(   0.01);
@@ -40,6 +41,19 @@ int main()
         x.push_back(1000.);
     }
     x.push_back(0.001); // there's an extra one of these guys
+    #else
+    for (unsigned int i = 0; i < 8; i++) {
+        x.push_back(0.0625);
+        x.push_back(0.1250);
+        x.push_back(0.2500);
+        x.push_back(0.5000);
+        x.push_back(1.0000);
+        x.push_back(2.0000);
+        x.push_back(4.0000);
+        x.push_back(8.0000);
+    }
+    x.push_back(0.5000); // there's an extra one of these guys
+    #endif
 
     for (unsigned int i = 0; i < N; i++) {
         std::random_shuffle(x.begin(), x.end());
