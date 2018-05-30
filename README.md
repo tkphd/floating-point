@@ -1,20 +1,26 @@
 # Associativity of Floating Point Arithmetic
-This repository represents an effort to address [usnistgov/discuss #8][_git]
-by exploring floating-point rounding errors using float and MPFR data types
+This repository addresses [usnistgov/discuss#8][_git] by exploring
+floating-point rounding errors through the lens of the associative
+property of addition. The programs herein demonstrate that deviations
+from mathematical precision are due to the standard representation
+of floating-point numbers in a binary data type, in compliance with
+[IEEE 754][_eee]. The evidence presented here does not support any
+role of the CPU, instruction sets, or [dynamic execution][_dyn] in
+the deviations.
 
-## Executive Summary
-Toy problems demonstrate that the binary representation of floating-point values
-([IEEE 754][_eee]) is very good when pure powers of 2 are involved, with roundoff errors
-apparent for any other number. This is neither surprising nor interesting.
-~If you value associative math over standards compliance, simply choose optimization
-level `-Ofast`. This level starts with `-O3` and adds corner-cutting flags, the
-most relevant of which is `-funsafe-math-optimizations`, which allows the compiler
-to *change your numbers* to behave in ways it thinks you want, rather than how
-IEEE 754 expects.
-
-I am not advocating `-funsafe-math-optimizations` without serious debate.
-It bears repeating that this flag *will change your numbers* in ways that
-the internationally agreed standards forbid. *You have been warned.*~
+## Basic Premise
+Addition of real numbers is [associative][_add]: inserting parentheses
+must not change the computed sum. For example,
+`(1+2)+(3+4)+5 = (1+2)+3+(4+5) = 1+(2+3)+(4+5) = 15`.
+The [two's complement][_two] representation of integers naturally
+supports associativity, within the representable range of `2^(n-1)-1`
+for an `n`-bit representation. However, fractional real numbers incur
+a round-off error since infinite digits cannot practically be stored.
+The chief exception to this general rule is that real fractions formed
+by the sum of powers of two *are* exactly represented, as a natural
+consequence of the data format. It should be noted that two's complement
+is *not* the internal representation used for floating point numbers,
+but can be used to visualize floating point representations.
 
 ## Dependencies
 - A C compiler, *e.g.* [GNU Compiler Collection][_gcc]
@@ -23,14 +29,14 @@ the internationally agreed standards forbid. *You have been warned.*~
 - [MPFR][_gnu] library headers and runtime, version 4 or greater
   - On Debian derivatives, `$ apt-get install libmpfr4 libmpfr-dev`
 
-### Test 1: Basic Associative Addition
+## Test 1: Basic Associative Addition
 When addition is associative, we expect the sum of three terms, `a+b+c`, to
 be independent of computation as `(a + b) + c` or `a + (b + c)`. Due to the
 binary representation of floating-point numbers ([IEEE 754][_eee]), *or* due to
 out-of-order execution on some CPUs, this will not be the case for numerical
 approximations to floating-point summation.
 
-#### Usage and Results
+### Usage and Results
 The code has three variants: `std` (standard representation), `gmp` (GNU MP
 representation), and `unsafe` (`std` with unsafe optimizations). Use the
 included Makefile or the commands in the following sections to compile the
@@ -144,17 +150,53 @@ command listed below.
 
 #### Discussion
 The sequence comprised exclusively of powers of 2 is represented exactly,
-while the sequence of powers of 10 is approximate, with competition between
-several similar results. This further demonstrates that these toy problems
-reflect "features" of the binary data format, rather than anything interesting
-with respect to computer hardware.
+*i.e.* 1 million repetitions produce the same result, exactly 128., every
+time. The sequence of powers of 10 is approximate, with the exact result
+computed in only 12 % of the million repetitions.
 
+# Conclusion
+For both test cases — associativity of `a+b+c` and shuffled summations
+equal to `10000` (decimal) and `128` (binary) — the programs in this
+repository demonstrate that deviations from mathematically expected results
+arise strictly due to the binary representation of floating-point numbers,
+not computer hardware or CPU instruction sets. While this inadequacy of
+[IEEE 754][_eee] is nothing new, the source code in this repository does
+provide simple, repeatable examples of the phenomenon, and may be of use
+as a teaching aid.
+
+If strict adherence to mathematical law is required, [high-precision math libraries][_lib]
+should be used instead of the built-in data types. [MPFR][_mpf] is one such
+libray for C; [MPMath][_mpm] is one for Python.
+
+## Further Reading on Floating-Point Representations
+1. David Goldberg, [What Every Computer Scientist Should Know About Floating-Point Arithmetic](https://dl.acm.org/citation.cfm?id=103163) (1991).
+   Concise summary of how the standard floating-point representation works, and pitfalls to avoid.
+2. Donald Knuth, [The Art of Computer Programming, Vol. 2, Ed. 3, &sect;4.2.2: Accuracy of Floating Point Arithmetic](https://books.google.com/books?id=Zu-HAwAAQBAJ&lpg=PT4&dq=knuth%20taocp%20vol%202&pg=PT385#v=onepage&q&f=true) (1997).
+   Philosophical review of floating-point representations with discussion of the compromises made to arrive at a working standard.
+3. Erik Cheever, [Representation of Numbers](http://www.swarthmore.edu/NatSci/echeeve1/Ref/BinaryMath/NumSys.html) (2001).
+   Summary, with exercises, of how the standard represents real numbers.
+4. Rick Regan, [Why 0.1 Does Not Exist In Floating-Point](http://www.exploringbinary.com/why-0-point-1-does-not-exist-in-floating-point/) (2012).
+   Excellent illustration of why round-off error is a necessary evil in the standard representation.
+5. James Demmel and Hong Diep Nguyen, [Numerical Reproducibility and Accuracy at Exascale](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6545912) (2013).
+   Short paper summarizing reproducibility of summation algorithms.
+6. James Demmel, Hong Diep Nguyen, & Peter Ahrens, [Cost of Floating-Point Reproducibility](https://www.nist.gov/sites/default/files/documents/itl/ssd/is/NRE-2015-07-Nguyen_slides.pdf) (2015).
+   Detailed slides discussing sources of non-reproducibility and the computational cost of correcting the deficiencies.
+7. Jeff Arnold, [An Introduction to Floating-Point Arithmetic and Computation](https://indico.cern.ch/event/626147/attachments/1456066/2247140/FloatingPoint.Handout.pdf) (2017).
+   Thorough slide deck highlighting problem areas for scientific computing.
+8. Thomas Risse, [Better is the Enemy of Good: Unums — An Alternative to IEEE 754 Floats and Doubles](https://ieeexplore.ieee.org/document/8080000/) (2017).
+   Concise discussion of an alternative floating-point representation.
+9. James Matey, [Re: Floating-Point Repeatability Issues on Modern Processors](https://github.com/usnistgov/discuss/issues/8#issuecomment-392554151) (2018).
 
 <!--References-->
+[_dyn]: https://en.wikipedia.org/wiki/Out-of-order_execution
 [_eee]: https://en.wikipedia.org/wiki/IEEE_754
 [_gcc]: https://gcc.gnu.org/
 [_git]: https://github.com/usnistgov/discuss/issues/8
 [_gnu]: http://www.mpfr.org/
 [_jmt]: https://github.com/usnistgov/discuss/issues/8#issuecomment-392554151
+[_lib]: https://en.wikipedia.org/wiki/List_of_arbitrary-precision_arithmetic_software
 [_mak]: https://www.gnu.org/software/make/
+[_mpf]: http://www.mpfr.org/
+[_mpm]: http://mpmath.org/
 [_rnd]: https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html#680
+[_two]: https://en.wikipedia.org/wiki/Two%27s_complement
