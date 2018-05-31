@@ -66,7 +66,7 @@ the decimal. Therefore,
 ### Built-in floating point representation
 ```
 $ make std
-gcc -O3 -Wall associative.c -o std -lm && ./std
+gcc -O3 -Wall addition.c -o std -lm && ./std
 | a           bin(a)                       | bin(a+b+c)                (a+b)+c     a+(b+c)     | equal |
 | 1.000000000 1.0                          | 1.0                       1.000000000 1.000000000 | 1     |
 | 0.500000000 0.1                          | 0.1                       0.500000000 0.500000000 | 1     |
@@ -82,7 +82,7 @@ gcc -O3 -Wall associative.c -o std -lm && ./std
 Using precision identical to the built-in float, we have the same result:
 ```
 $ make gmp
-gcc -O3 -Wall -include "mpfr.h" associative.c -o gmp -lm -lmpfr && ./gmp
+gcc -O3 -Wall -include "mpfr.h" addition.c -o gmp -lm -lmpfr && ./gmp
 | a           bin(a)               | bin(a+b+c)        (a+b)+c     a+(b+c)     | equal |
 | 1.000000000 1.0                  | 1.0               1.000000000 1.000000000 | 1     |
 | 0.500000000 0.1                  | 0.1               0.500000000 0.500000000 | 1     |
@@ -96,7 +96,7 @@ gcc -O3 -Wall -include "mpfr.h" associative.c -o gmp -lm -lmpfr && ./gmp
 However, setting the precision of a long double,
 ```
 $ make gmp
-gcc -O3 -Wall -pedantic -include "mpfr.h" associative.c -o gmp -lm -lmpfr && ./gmp
+gcc -O3 -Wall -pedantic -include "mpfr.h" addition.c -o gmp -lm -lmpfr && ./gmp
 | a           bin(a)                      | bin(a+b+c)                  (a+b)+c     a+(b+c)     | equal |
 | 1.000000000 1.0                         | 1.0                         1.000000000 1.000000000 | 1     |
 | 0.500000000 0.1                         | 0.1                         0.500000000 0.500000000 | 1     |
@@ -122,7 +122,7 @@ enables optimizations that
 In other words, it is ill-advised for production code. However,
 ```
 $ make unsafe
-gcc -O3 -Wall -funsafe-math-optimizations associative.c -o unsafe -lm && ./unsafe
+gcc -O3 -Wall -funsafe-math-optimizations addition.c -o unsafe -lm && ./unsafe
 | a           bin(a)                       | bin(a+b+c)                   (a+b)+c     a+(b+c)     | equal |
 | 1.000000000 1.0                          | 1.0                          1.000000000 1.000000000 | 1     |
 | 0.500000000 0.1                          | 0.1                          0.500000000 0.500000000 | 1     |
@@ -177,7 +177,7 @@ command listed below.
 ### Floating point representation of decimal sequence `∑10ⁿ`
 ```
 $ make shuffle10
-g++ -O -Wall -pedantic -std=c++11 -DDECIMAL shuffle-sum.cpp -o shuffle && ./shuffle
+g++ -O -Wall -pedantic -std=c++11 -DDECIMAL summation.cpp -o shuffle && ./shuffle
  9999.99414062500000000000000000:  0.033300001 %
  9999.99511718750000000000000000:  0.624599993 %
  9999.99609375000000000000000000:  4.240699768 %
@@ -191,7 +191,7 @@ g++ -O -Wall -pedantic -std=c++11 -DDECIMAL shuffle-sum.cpp -o shuffle && ./shuf
 ### Floating point representation of binary sequence `∑2ⁿ`
 ```
 $ make shuffle
-g++ -O -Wall -pedantic -std=c++11 shuffle-sum.cpp -o shuffle && ./shuffle
+g++ -O -Wall -pedantic -std=c++11 summation.cpp -o shuffle && ./shuffle
 128.00000000000000000000000000: 100.000000000 %
 ```
 
@@ -226,7 +226,7 @@ Makefile or the commands below.
 
 ```
 $ make phi
-icc -O3 -Wall -xmic-avx512 -fp-model precise associative.c -o phi && ./phi
+icc -O3 -Wall -xmic-avx512 -fp-model precise addition.c -o phi && ./phi
 |  a            bin(a)                       | bin(a+b+c)                      (a+b)+c       a+(b+c)     | equal |
 |  1.000000000  1.0                          | 1.0                             1.000000000   1.000000000 | 1     |
 |  0.500000000  0.1                          | 0.1                             0.500000000   0.500000000 | 1     |
@@ -248,7 +248,7 @@ icc -O3 -Wall -xmic-avx512 -fp-model precise associative.c -o phi && ./phi
 
 ```
 $ make shufflePhi
-icc -O3 -Wall -pedantic -std=c++11 -DDECIMAL -xmic-avx512 -fp-model strict shuffle-sum.cpp -o shufflePhi && ./shufflePhi
+icc -O3 -Wall -pedantic -std=c++11 -DDECIMAL -xmic-avx512 -fp-model strict summation.cpp -o shufflePhi && ./shufflePhi
  9999.99414062500000000000000000:  0.033300001 %
  9999.99511718750000000000000000:  0.624599993 %
  9999.99609375000000000000000000:  4.240699768 %

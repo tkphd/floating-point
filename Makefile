@@ -3,25 +3,25 @@ all: std gmp
 
 FLAGS = -O3 -Wall -pedantic
 
-std: associative.c
+std: addition.c
 	gcc $(FLAGS) $< -o $@ -lm && ./$@
 
-phi: associative.c
+phi: addition.c
 	icc $(FLAGS) -xmic-avx512 -fp-model strict $< -o $@ && ./$@
 
-gmp: associative.c
+gmp: addition.c
 	gcc $(FLAGS) -include "mpfr.h" $< -o $@ -lm -lmpfr && ./$@
 
-unsafe: associative.c
+unsafe: addition.c
 	gcc $(FLAGS) -funsafe-math-optimizations $< -o $@ -lm && ./$@
 
-shuffle: shuffle-sum.cpp
+shuffle: summation.cpp
 	g++ $(FLAGS) -std=c++11 $< -o $@ && ./$@
 
-shuffle10: shuffle-sum.cpp
+shuffle10: summation.cpp
 	g++ $(FLAGS) -std=c++11 -DDECIMAL $< -o $@ && ./$@
 
-shufflePhi: shuffle-sum.cpp
+shufflePhi: summation.cpp
 	icc $(FLAGS) -std=c++11 -DDECIMAL -xmic-avx512 -fp-model strict $< -o $@ && ./$@
 
 .PHONY: clean
