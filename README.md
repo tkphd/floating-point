@@ -11,6 +11,7 @@ the deviations.
 ### Table of Contents
 1. [Three Term Addition](#three-term-addition)
 2. [Shuffled Summation](#shuffled-summation)
+3. [Out-of-Order Execution](#out-of-order)
 3. [Conclusions](#conclusions)
 4. [Further Reading](#further-reading)
 
@@ -35,12 +36,13 @@ but can be used to visualize floating point representations.
 - [MPFR][_gnu] library headers and runtime, version 4 or greater
   - On Debian derivatives, `$ apt-get install libmpfr4 libmpfr-dev`
 
+
 # <a name="three-term-addition"></a>Three Term Addition
 When addition is associative, we expect the sum of three terms, `a+b+c`,
 to be independent of computation as `(a+b)+c` or `a+(b+c)`. Due to the
-binary representation of floating-point numbers ([IEEE 754][_eee]), *or* due
-to out-of-order execution on some CPUs, this will not be the case for numerical
-approximations to floating-point summation.
+binary representation of floating-point numbers ([IEEE 754][_eee]), *or*
+due to out-of-order execution on some CPUs, this will not be the case for
+numerical approximations to floating-point summation.
 
 ## Usage and Results
 The code has three variants: `std` (standard representation), `gmp` (GNU MP
@@ -62,7 +64,7 @@ the decimal. Therefore,
 ```
 
 ### Built-in floating point representation
-```bash
+```
 $ make std
 gcc -O3 -Wall associative.c -o std -lm && ./std
 | a           bin(a)                       | bin(a+b+c)                (a+b)+c     a+(b+c)     | equal |
@@ -77,7 +79,7 @@ gcc -O3 -Wall associative.c -o std -lm && ./std
 ```
 
 ### GNU MPFR floating-point representation
-```bash
+```
 $ make gmp
 gcc -O3 -Wall -include "mpfr.h" associative.c -o gmp -lm -lmpfr && ./gmp
 | a           bin(a)               | bin(a+b+c)        (a+b)+c     a+(b+c)     | equal |
@@ -101,7 +103,7 @@ enables optimizations that
 - may yield faster code for programs that do not require the guarantees of these specifications.
 
 In other words, it is ill-advised for production code. However,
-```bash
+```
 $ make unsafe
 gcc -O3 -Wall -funsafe-math-optimizations associative.c -o unsafe -lm && ./unsafe
 | a           bin(a)                       | bin(a+b+c)                   (a+b)+c     a+(b+c)     | equal |
@@ -125,6 +127,7 @@ Since many scientific computing applications model diffusive processes (heat tra
 mass diffusion, etc.), the effect is expected to be small: the perturbations caused
 by round-off error will be smoothed out by the stable numerical scheme without any
 additional effort on the part of the programmer.
+
 
 # <a name="shuffled-summation"></a>Shuffled Summation
 Ideally, the sequence of decimals (powers of 10)
@@ -155,7 +158,7 @@ There are two variants, `shuffle` and `shuffle10`, which can be built using the 
 command listed below.
 
 ### Floating point representation of decimal sequence `∑10ⁿ`
-```bash
+```
 $ make shuffle10
 g++ -O -Wall -pedantic -std=c++11 -DDECIMAL shuffle-sum.cpp -o shuffle && ./shuffle
  9999.99414062500000000000000000:  0.033300001 %
@@ -169,7 +172,7 @@ g++ -O -Wall -pedantic -std=c++11 -DDECIMAL shuffle-sum.cpp -o shuffle && ./shuf
 ```
 
 ### Floating point representation of binary sequence `∑2ⁿ`
-```bash
+```
 $ make shuffle
 g++ -O -Wall -pedantic -std=c++11 shuffle-sum.cpp -o shuffle && ./shuffle
 128.00000000000000000000000000: 100.000000000 %
@@ -180,6 +183,83 @@ The sequence comprised exclusively of powers of 2 is represented exactly,
 *i.e.* 1 million repetitions produce the same result, exactly `128.`, every
 time. The sequence of powers of 10 is approximate, with the exact result,
 `10000.`, computed in only 11 % of the million repetitions.
+
+
+# <a name="out-of-order"></a>Out-of-Order Execution
+[Out-of-order execution][_ooe] is a common method to avoid processor pipeline
+stalls: instructions are fetched in the order provided by the compiler, but
+executed in a way that minimizes wasted processor cycles. While modern CPUs
+implement out-of-order execution with in-order completion, a few architectures
+feature out-of-order *completion* of the compiler-supplied instructions, *e.g.*
+Intel's [P6 (Pentium Pro/II/III)][_ip6], [Core][_ico], and
+[Silvermont (Atom, Knights Landing)][_ism]. Since the sequence of mathematical
+operations would be non-deterministic, these processors could exhibit poor
+reproducibility of floating-point arithmetic.
+
+## Usage and Results
+Variants of the [shuffled summation](#shuffled-summation) and
+[three-term addition](#three-term-addition) codes can be used to
+compare results between Intel [Xeon (Sandy Bridge)][_isb] and 
+[Knights Landing (Silvermont)][_ism] processors. Since the KNL hardware is
+novel, the [Intel C++ Compiler][_icc] is preferred over [GCC][_gcc]; it sets
+[`-fp-model fast=1`][_fpm] by default, which is equivalent to `-Ofast` in GCC
+and must be disabled to provide a valid comparison using standards-compliant
+arithmetic. The variants, `phi` and `shufflePhi`, can be built using the
+Makefile or the commands below.
+
+```
+$ make phi
+icc -O3 -Wall -xmic-avx512 -fp-model precise associative.c -o phi && ./phi
+|  a            bin(a)                       | bin(a+b+c)                      (a+b)+c       a+(b+c)     | equal |
+|  1.000000000  1.0                          | 1.0                             1.000000000   1.000000000 | 1     |
+|  0.500000000  0.1                          | 0.1                             0.500000000   0.500000000 | 1     |
+|  0.333333343  0.0101010101010101010101011  | 0.01010101010101010101011       0.333333373   0.333333343 | 0     |
+|  0.250000000  0.01                         | 0.01                            0.250000000   0.250000000 | 1     |
+|  0.200000003  0.00110011001100110011001101 | 0.0011001100110011001101        0.200000048   0.200000003 | 0     |
+|  0.166666672  0.00101010101010101010101011 | 0.00101010101010101010101       0.166666627   0.166666672 | 0     |
+|  0.142857149  0.00100100100100100100100101 | 0.00100100100100100100101       0.142857194   0.142857149 | 0     |
+|  0.125000000  0.001                        | 0.001                           0.125000000   0.125000000 | 1     |
+|  0.111111112  0.000111000111000111000111001| 0.000111000111000111001         0.111111164   0.111111112 | 0     |
+|  0.100000001  0.000110011001100110011001101| 0.00011001100110011001101       0.100000024   0.100000001 | 0     |
+|  0.090909094  0.0001011101000101110100011  | 0.00010111010001011101001       0.090909123   0.090909094 | 0     |
+|  0.083333336  0.000101010101010101010101011| 0.00010101010101010101011       0.083333373   0.083333336 | 0     |
+|  0.076923080  0.000100111011000100111011001| 0.0001001110110001001111        0.076923132   0.076923080 | 0     |
+|  0.071428575  0.000100100100100100100100101| 0.0001001001001001001001        0.071428537   0.071428575 | 0     |
+|  0.066666670  0.000100010001000100010001001| 0.00010001000100010001001       0.066666722   0.066666670 | 0     |
+|  0.062500000  0.0001                       | 0.0001                          0.062500000   0.062500000 | 1     |
+```
+
+```
+$ make shufflePhi
+icc -O3 -Wall -pedantic -std=c++11 -DDECIMAL -xmic-avx512 -fp-model strict shuffle-sum.cpp -o shufflePhi && ./shufflePhi
+ 9999.99414062500000000000000000:  0.033300001 %
+ 9999.99511718750000000000000000:  0.624599993 %
+ 9999.99609375000000000000000000:  4.240699768 %
+ 9999.99707031250000000000000000: 15.360699654 %
+ 9999.99804687500000000000000000: 34.903400421 %
+ 9999.99902343750000000000000000: 33.413898468 %
+10000.00000000000000000000000000: 11.187700272 %
+10000.00097656250000000000000000:  0.235699996 %
+```
+
+## Discussion
+The results of shuffled summation, with zeros truncated, shows no difference
+between the microarchitectures:
+```
+--------------------------------  --------------------------------
+         Xeon E5-1650                      Xeon Phi 7210          
+--------------------------------  --------------------------------
+ 9999.9941406250:  0.033300000 %   9999.9941406250:  0.033300001 %
+ 9999.9951171875:  0.624600000 %   9999.9951171875:  0.624599993 %
+ 9999.9960937500:  4.240700000 %   9999.9960937500:  4.240699768 %
+ 9999.9970703125: 15.360700000 %   9999.9970703125: 15.360699654 %
+ 9999.9980468750: 34.903400000 %   9999.9980468750: 34.903400421 %
+ 9999.9990234375: 33.413900000 %   9999.9990234375: 33.413898468 %
+10000.0000000000: 11.187700000 %  10000.0000000000: 11.187700272 %
+10000.0009765625:  0.235700000 %  10000.0009765625:  0.235699996 %
+--------------------------------  --------------------------------
+```
+
 
 # <a name="conclusions"></a>Conclusions
 For both test cases — associativity of `a+b+c` and shuffled summations
@@ -195,6 +275,7 @@ If strict adherence to mathematical law is required, use a [high-precision math 
 For example, instead of the built-in data types, use
 - [MPFR][_mpf] for C/C++.
 - [MPMath][_mpm] for Python.
+
 
 # <a name="further-reading"></a>Further Reading
 1. David Goldberg, [What Every Computer Scientist Should Know About Floating-Point Arithmetic](https://dl.acm.org/citation.cfm?id=103163) (1991).
@@ -214,17 +295,25 @@ For example, instead of the built-in data types, use
 8. Thomas Risse, [Better is the Enemy of Good: Unums — An Alternative to IEEE 754 Floats and Doubles](https://ieeexplore.ieee.org/document/8080000/) (2017).
    Concise discussion of an alternative floating-point representation.
 9. James Matey, [Re: Floating-Point Repeatability Issues on Modern Processors](https://github.com/usnistgov/discuss/issues/8#issuecomment-392554151) (2018).
+   Insightful comment on the [GitHub Issue][_git] with helpful references.
 
 <!--References-->
 [_dyn]: https://en.wikipedia.org/wiki/Out-of-order_execution
 [_eee]: https://en.wikipedia.org/wiki/IEEE_754
+[_fpm]: https://software.intel.com/en-us/node/522979
 [_gcc]: https://gcc.gnu.org/
 [_git]: https://github.com/usnistgov/discuss/issues/8
 [_gnu]: http://www.mpfr.org/
+[_icc]: https://software.intel.com/c-compilers
+[_ico]: https://en.wikipedia.org/wiki/Core_(microarchitecture)
+[_ip6]: https://en.wikipedia.org/wiki/P6_(microarchitecture)
+[_isb]: https://en.wikipedia.org/wiki/Sandy_Bridge
+[_ism]: https://en.wikipedia.org/wiki/Silvermont
 [_jmt]: https://github.com/usnistgov/discuss/issues/8#issuecomment-392554151
 [_lib]: https://en.wikipedia.org/wiki/List_of_arbitrary-precision_arithmetic_software
 [_mak]: https://www.gnu.org/software/make/
 [_mpf]: http://www.mpfr.org/
 [_mpm]: http://mpmath.org/
+[_ooe]: https://en.wikipedia.org/wiki/Out-of-order_execution
 [_rnd]: https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html#680
 [_two]: https://en.wikipedia.org/wiki/Two%27s_complement
