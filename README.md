@@ -79,6 +79,7 @@ gcc -O3 -Wall associative.c -o std -lm && ./std
 ```
 
 ### GNU MPFR floating-point representation
+Using precision identical to the built-in float, we have the same result:
 ```
 $ make gmp
 gcc -O3 -Wall -include "mpfr.h" associative.c -o gmp -lm -lmpfr && ./gmp
@@ -92,8 +93,24 @@ gcc -O3 -Wall -include "mpfr.h" associative.c -o gmp -lm -lmpfr && ./gmp
 | 0.142856598 0.001001001001001001 | 0.001001001001001 0.142852783 0.142856598 | 0     |
 | 0.125000000 0.001                | 0.001             0.125000000 0.125000000 | 1     |
 ```
+However, setting the precision of a long double,
+```
+$ make gmp
+gcc -O3 -Wall -pedantic -include "mpfr.h" associative.c -o gmp -lm -lmpfr && ./gmp
+| a           bin(a)                      | bin(a+b+c)                  (a+b)+c     a+(b+c)     | equal |
+| 1.000000000 1.0                         | 1.0                         1.000000000 1.000000000 | 1     |
+| 0.500000000 0.1                         | 0.1                         0.500000000 0.500000000 | 1     |
+| 0.333333313 0.010101010101010101010101  | 0.010101010101010101010101  0.333333313 0.333333313 | 1     |
+| 0.250000000 0.01                        | 0.01                        0.250000000 0.250000000 | 1     |
+| 0.199999988 0.001100110011001100110011  | 0.001100110011001100110011  0.199999988 0.199999988 | 1     |
+| 0.166666657 0.0010101010101010101010101 | 0.0010101010101010101010101 0.166666657 0.166666657 | 1     |
+| 0.142857134 0.001001001001001001001001  | 0.001001001001001001001001  0.142857134 0.142857134 | 1     |
+| 0.125000000 0.001                       | 0.001                       0.125000000 0.125000000 | 1     |
+```
+Using a library therefore allows the programmer to choose an appropriate level of
+precision, as well as the rounding scheme and deterministic orders of operations.
 
-### Optimized floating-point representation
+### Unsafe floating-point representation
 Per the [Using the GNU Compiler Collection(GCC) &sect;3.10][_gcc], `-funsafe-math-optimizations`
 enables optimizations that
 - assume both arguments and results are valid
@@ -297,10 +314,12 @@ For example, instead of the built-in data types, use
 9. James Matey, [Re: Floating-Point Repeatability Issues on Modern Processors](https://github.com/usnistgov/discuss/issues/8#issuecomment-392554151) (2018).
    Insightful comment on the [GitHub Issue][_git] with helpful references.
 
+
 <!--References-->
 [_dyn]: https://en.wikipedia.org/wiki/Out-of-order_execution
 [_eee]: https://en.wikipedia.org/wiki/IEEE_754
 [_fpm]: https://software.intel.com/en-us/node/522979
+[_fpu]: http://www.website.masmforum.com/tutorials/fptute/fpuchap1.htm#cword
 [_gcc]: https://gcc.gnu.org/
 [_git]: https://github.com/usnistgov/discuss/issues/8
 [_gnu]: http://www.mpfr.org/

@@ -78,10 +78,15 @@ void fp2bin(double fp, char* binString)
 /* Test associative addition of 1, -1, and a number less than 1 */
 int main()
 {
-        double x;
-        int check;
+    double x;
+    int check;
     char binStrA[FP2BIN_STRING_MAX] = {0};
     char binStrD[FP2BIN_STRING_MAX] = {0};
+	#ifdef __GNU_MP__
+    mpfr_t a, b, c, d, l, r;
+    #else
+    float *a, *b, *c, *d, *l, *r;
+    #endif
 
     const char i[36] = {'a', '\0',
                         'b', 'i', 'n', '(', 'a', ')', '\0',
@@ -95,11 +100,10 @@ int main()
     for (x = 1; x < 17; x++) {
         check = 0;
 
-        #ifdef __GNU_MP__
+		#ifdef __GNU_MP__
         mpfr_set_default_prec(4*sizeof(float)); /* expect 7 digits of precision */
 
         /* initialize variables */
-        mpfr_t a, b, c, d, l, r;
         mpfr_init_set_d(a, 1. / x, MPFR_RNDD);
         mpfr_init_set_d(b, 1, MPFR_RNDD);
         mpfr_init_set_d(c,-1, MPFR_RNDD);
@@ -140,7 +144,6 @@ int main()
 
         #else
         /* initialize variables */
-        float *a, *b, *c, *d, *l, *r;
         a = (float*)malloc(sizeof(float));
         b = (float*)malloc(sizeof(float));
         c = (float*)malloc(sizeof(float));
@@ -174,7 +177,7 @@ int main()
         free(l);
         free(r);
 
-        #endif
+		#endif
     }
 
 	#ifdef __GNU_MP__
