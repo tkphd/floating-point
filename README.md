@@ -149,9 +149,9 @@ additional effort on the part of the programmer.
 # <a name="shuffled-summation"></a>Shuffled Summation
 Ideally, the sequence of decimals (powers of 10)
 ```
-    1        1       1
-10× /   + 9× /  + 9× / + 9×1 + 9×10 + 9×10² + 9×10³ = 10⁴ = 10000.
-    1000     100     10
+  10     9    9
+---- + --- + -- + 9 + 90 + 900 + 9000 = 10⁴ = 10000.
+1000   100   10
 ```
 However, due to the same floating point representation problem, variations arise
 from the order of summation. As a demonstration, this program will generate a vector
@@ -161,9 +161,9 @@ For additional details, see the [original thread][_git].
 
 Similarly, the sequence of binaries (powers of 2)
 ```
-   1      1      1      1
-8× / + 8× / + 8× / + 9× / + 8×1 + 8×2 + 8×2² + 8×2³ = 2⁷ = 128.
-   16     8      4      2
+ 8     8    8    9
+--  + -- + -- + -- + 8 + 16 + 32 + 64 = 2⁷ = 128.
+16     8    4    2
 ```
 The program will generate a vector of 65 numbers (9 + 8*7) and,
 for each of 1 million trials, shuffle the vector before summing.
@@ -316,6 +316,7 @@ For example, instead of the built-in data types, use
 
 
 <!--References-->
+[_add]: https://en.wikipedia.org/wiki/Associative_property
 [_dyn]: https://en.wikipedia.org/wiki/Out-of-order_execution
 [_eee]: https://en.wikipedia.org/wiki/IEEE_754
 [_fpm]: https://software.intel.com/en-us/node/522979
