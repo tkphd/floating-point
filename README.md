@@ -9,12 +9,22 @@ floating-point numbers in a binary data type, in compliance with
 role of the CPU, instruction sets, or [dynamic execution][dyn] in the
 deviations.
 
+*tl;dr:* If strict adherence to mathematical law is required, use a
+[high-precision math library][lib]. For example, instead of the
+built-in data types, use
+
+- [MPFR][mpf] for C/C++.
+- [MPMath][mpm] for Python.
+
 [![DOI](https://zenodo.org/badge/135336811.svg)][zen]
 
-Please cite this work as follows:
+This primer was written by Trevor Keller <trevor.keller@nist.gov>.
+It is intended for educational purposes only.
+Please cite this work:
 
-> Trevor Keller (2018), "A primer on floating-point arithmetic and IEEE 754."
-> National Institute of Standards and Technology. DOI: [10.5281/zenodo.6524704][doi].
+> Trevor Keller, "A primer on floating-point arithmetic and IEEE 754."
+> National Institute of Standards and Technology (2018):
+> DOI [10.5281/zenodo.6524704][doi].
 
 ## Table of Contents
 
@@ -87,10 +97,10 @@ representing a power of two that decreases from `0` at the decimal.
 Therefore,
 
 ```math
-1   = 2^( 0)  = 1.00
-1/2 = 2^(-1)  = 0.10
-1/4 = 2^(-2)  = 0.01
-3/4 = 1/2+1/4 = 0.11
+1 = 2^( 0) = 1.00
+½ = 2^(-1) = 0.10
+¼ = 2^(-2) = 0.01
+¾ = ½ + ¼  = 0.11
 ```
 
 #### Built-in floating point representation
@@ -203,7 +213,7 @@ Ideally, the sequence of decimals (powers of 10)
 
 However, due to the same floating point representation problem,
 variations arise from the order of summation. As a demonstration,
-this program will generate a vector of 64 numbers (10 + 9×6), then
+this program will generate a vector of 64 numbers (`10 + 9×6`), then
 for each of 1 million trials, the same vector gets shuffled before
 summing. The histogram of values is then reported. For additional
 details, see the [original thread][_git].
@@ -216,9 +226,9 @@ Similarly, the sequence of binaries (powers of 2)
 16     8    4    2
 ```
 
-The program will generate a vector of 65 numbers (9 + 8×7) and, for
+The program will generate a vector of 65 numbers (`9 + 8×7`) and, for
 each of 1 million trials, shuffle the vector before summing. Due to
-the exact representation of powers-of-two, only one result (128.) is
+the exact representation of powers-of-two, only one result (`128`) is
 expected for all million shuffles.
 
 ### Results of Shuffled Summation
@@ -253,8 +263,8 @@ g++ -O3 -Wall -pedantic -std=c++11 summation.cpp -o shuffle && ./shuffle
 
 The sequence comprised exclusively of powers of 2 is represented
 exactly, *i.e.* 1 million repetitions produce the same result,
-exactly `128.`, every time. The sequence of powers of 10 is
-approximate, with the exact result, `10000.`, computed in only 11 %
+exactly `128`, every time. The sequence of powers of 10 is
+approximate, with the exact result, `10000`, computed in only 11 %
 of the million repetitions.
 
 ## <a name="out-of-order"></a>Out-of-Order Execution
@@ -347,13 +357,6 @@ not computer hardware or CPU instruction sets. While this inadequacy of
 [IEEE 754][eee] is nothing new, the source code in this repository does
 provide simple, repeatable examples of the phenomenon, and may be of use
 as a teaching aid.
-
-If strict adherence to mathematical law is required, use a
-[high-precision math library][lib]. For example, instead of the
-built-in data types, use
-
-- [MPFR][mpf] for C/C++.
-- [MPMath][mpm] for Python.
 
 ## <a name="further-reading"></a>Further Reading
 
