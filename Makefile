@@ -1,4 +1,4 @@
-all: std gmp
+all: std mpf
 .PHONY: all
 
 FLAGS = -O3 -Wall -pedantic
@@ -9,7 +9,10 @@ std: addition.c
 phi: addition.c
 	icc $(FLAGS) -xmic-avx512 -fp-model strict $< -o $@ && ./$@
 
-gmp: addition.c
+spf: addition.c
+	gcc $(FLAGS) -D_SINGLE_PRECISION_ -include "mpfr.h" $< -o $@ -lm -lmpfr && ./$@
+
+mpf: addition.c
 	gcc $(FLAGS) -include "mpfr.h" $< -o $@ -lm -lmpfr && ./$@
 
 unsafe: addition.c
@@ -26,4 +29,4 @@ shufflePhi: summation.cpp
 
 .PHONY: clean
 clean:
-	rm -f std phi gmp unsafe shuffle shuffle10 shufflePhi
+	rm -f std phi spf mpf unsafe shuffle shuffle10 shufflePhi
