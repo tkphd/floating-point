@@ -1,4 +1,4 @@
-# Associativity of Floating Point Arithmetic
+# A Primer on Floating-Point Arithmetic and IEEE 754
 
 This repository addresses [usnistgov/discuss#8][git] by exploring
 floating-point rounding errors through the lens of the associative
@@ -8,6 +8,13 @@ floating-point numbers in a binary data type, in compliance with
 [IEEE 754][eee]. The evidence presented here does not support any
 role of the CPU, instruction sets, or [dynamic execution][dyn] in the
 deviations.
+
+[![DOI](https://zenodo.org/badge/135336811.svg)][zen]
+
+Please cite this work as follows:
+
+> Trevor Keller (2018), "A primer on floating-point arithmetic and IEEE 754."
+> National Institute of Standards and Technology. DOI: [10.5281/zenodo.6524704][doi].
 
 ## Table of Contents
 
@@ -21,9 +28,9 @@ deviations.
 
 To build the C and C++ programs in this repository, you will need:
 
-- A C compiler, *e.g.* [gcc][gcc], with the standard libraries
-- [Make][mak]
-- [MPFR][mpf] library headers and runtime, version 4 or greater
+- C and C++ compilers with standard libraries, *e.g.* [gcc][gcc]
+- [Make][mak] build tool
+- [MPFR][mpf] library and headers, version 4 or greater
   
 On Debian derivatives (Ubuntu, Mint), these are all packaged:
 
@@ -401,6 +408,7 @@ The following resources helped me to gain understanding.
 
 <!-- links -->
 
+[doi]: https://doi.org/10.5281/zenodo.6524704
 [dyn]: https://en.wikipedia.org/wiki/Out-of-order_execution
 [eee]: https://en.wikipedia.org/wiki/IEEE_754
 [fpm]: https://software.intel.com/en-us/node/522979
@@ -420,6 +428,7 @@ The following resources helped me to gain understanding.
 [ooe]: https://en.wikipedia.org/wiki/Out-of-order_execution
 [rnd]: https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html#680
 [two]: https://en.wikipedia.org/wiki/Two%27s_complement
+[zen]: https://zenodo.org/badge/latestdoi/135336811
 
 <!-- references -->
 
