@@ -236,7 +236,7 @@ variations arise from the order of summation. As a demonstration,
 this program will generate a vector of 64 numbers ($10 + 9\times 6$),
 then for each of 1 million trials, the same vector gets shuffled
 before summing. The histogram of values is then reported. For
-additional details, see the [original thread][_git].
+additional details, see the [original thread][git].
 
 Similarly, the sequence of binaries (powers of 2)
 
