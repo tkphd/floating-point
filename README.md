@@ -228,7 +228,7 @@ additional effort on the part of the programmer.
 Ideally, the sequence of decimals (powers of 10)
 
 $$
-\frac{10}{1000} + \frac{9}{100} + \frac{9}{10} + 9 + 90 + 900 + 9000 = 10^4 = 10000
+\frac{1}{1000} + 9 \times \left(\frac{1}{1000} + \frac{1}{100} + \frac{1}{10} + 1 + 10 + 100 + 1000\right) = 10^4 = 10000
 $$
 
 However, due to the same floating point representation problem,
@@ -241,7 +241,7 @@ additional details, see the [original thread][git].
 Similarly, the sequence of binaries (powers of 2)
 
 $$
-\frac{8}{16} + \frac{8}{8} + \frac{8}{4} + \frac{9}{2} + 8 + 16 + 32 + 64 = 2^7 = 128
+\frac{1}{2} + 8 \times \left(\frac{1}{16} + \frac{1}{8} + \frac{1}{4} + \frac{1}{2} + 1 + 2 + 4 + 8\right) = 2^7 = 128
 $$
 
 The program will generate a vector of 65 numbers ($9 + 8\times 7$)
